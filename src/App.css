@@ -7,3 +7,16 @@
   left: 0px;
   top: 0px;
 }
+
+.nav-list {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  padding: 0px;
+
+  position: absolute;
+  width: 1289px;
+  height: 1096px;
+  left: 0px;
+  top: 136px;
+}

@@ -1,12 +1,28 @@
 import React from 'react';
 import './App.css';
-import { Sheet } from './component';
+import { NavPage, SheetPage } from './component';
+import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
+
+const Home = () => (
+  <div className="bg-gray-100 h-screen w-screen p-4">
+    <div className="h-100 w-9/12 my-auto mx-auto flex items-center justify-center align-center font-sans">
+      <NavPage />
+    </div>
+  </div>
+);
 
 function App() {
   return (
-    <div className="App">
-      <Sheet options={{ data: null }} className="sheet-fullpage" />
-    </div>
+    <Router>
+      <Switch>
+        <Route path="/sheet/:filename">
+          <SheetPage />
+        </Route>
+        <Route path="/">
+          <Home />
+        </Route>
+      </Switch>
+    </Router>
   );
 }
 
