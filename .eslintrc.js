@@ -1,15 +1,15 @@
 module.exports = {
-  extends: ["eslint:recommended", "plugin:react/recommended"],
-  plugins: ["prettier", "simple-import-sort"],
+  extends: ['eslint:recommended', 'plugin:react/recommended'],
+  plugins: ['prettier', 'simple-import-sort'],
   settings: {
     react: {
-      version: "detect",
+      version: 'detect',
     },
   },
-  parser: "babel-eslint",
+  parser: 'babel-eslint',
   parserOptions: {
     ecmaVersion: 2018,
-    sourceType: "module",
+    sourceType: 'module',
   },
   env: {
     browser: true,
@@ -32,5 +32,9 @@ module.exports = {
     beforeEach: true,
     on: true,
     config: true,
+  },
+  rules: {
+    'no-unused-vars': 'warn',
+    'prop-types': 'off',
   },
 };
