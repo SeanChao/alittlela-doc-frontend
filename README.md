@@ -2,6 +2,14 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+## Getting Started
+
+Create a `.env.local` file for your local development:
+
+```txt
+REACT_APP_WS_URL=ws://localhost:23333
+```
+
 ## Available Scripts
 
 In the project directory, you can run:
