@@ -7,13 +7,38 @@ const WS_API = process.env.REACT_APP_WS_URL;
 
 const SheetPage = (...props) => {
   // WebSocket config
-  const socketUrl = `${WS_API}`;
+  let { filename,userid } = useParams();
+  let cancel=0;
+  const  socketUrl='ws://localhost:8080/ws?user='+userid+'&path='+filename  //'wss://echo.websocket.org'  // `${WS_API}`;
 
-  const { sendMessage, lastMessage, readyState } = useWebSocket(socketUrl);
+  const { sendJsonMessage, lastMessage, readyState } = useWebSocket(socketUrl);
 
   // received message
   useMemo(() => {
-    console.log(lastMessage);
+    console.log('lastMessage-----------------------------');
+    if(lastMessage==null)
+      return
+    var data = JSON.parse(lastMessage.data)
+    console.log(data)
+    let cellData,id
+    switch (data.action){
+      case 'lock':
+        //todo lock the cell
+        console.log(data.user,' lock ',data.sheet,'-',data.column,'-',data.row)
+        break
+      case 'unlock':
+        //todo unlock the cell
+        console.log(data.user,' unlock ',data.sheet,'-',data.column,'-',data.row)
+        break
+      case 'write':
+        //todo after writing, the cell lock will be release automatically
+        console.log(data.user,' write ',data.sheet,'-',data.column,'-',data.row)
+        cellData=JSON.parse(data.updateData)
+        window.luckysheet.setCellValue(data.row,data.column,cellData)
+        break
+      default:
+        console.log('other message')
+    }
   }, [lastMessage]);
 
   const connectionStatus = {
@@ -24,14 +49,36 @@ const SheetPage = (...props) => {
     [ReadyState.UNINSTANTIATED]: 'Uninstantiated',
   }[readyState];
 
-  let { filename } = useParams();
+  //write
   const cellUpdateBefore = (...args) => {
+    console.log('update before------------------------------')
+    if(cancel===1)
+      cancel=0;
     console.log(args);
+    console.log(window.luckysheet.getCellValue(args[0],args[1]))
   };
   const cellUpdated = (...args) => {
+    console.log('cell updated------------------------------')
     console.log(args);
-    sendMessage(JSON.stringify(args));
+    console.log('send write message');
+    sendJsonMessage(constructWriteMessage(...args));
   };
+  //after write
+  const  constructWriteMessage=(...args)=>{
+    //[0]:row; [1]:column; [2]:before value; [3]:update value; [4]:bool? don't know
+    let message = {}
+    message['action'] = 'write';
+    message['sheet']="Sheet1" //todo how to get the sheet name?
+    message['column'] = args[1];
+    message['row'] = args[0];
+    message['user'] = userid;
+    message['path'] = filename;
+    message['updateData']=JSON.stringify(args[3])
+    console.log(message);
+    return message
+  }
+
+
 
   /**
    * Usage: Frame selection or trigger after setting selection
@@ -39,11 +86,53 @@ const SheetPage = (...props) => {
    * {Object} [sheet]: Current worksheet object
    * {Object | Array} [range]: Selection area, may be multiple selection areas
    */
+    // attention : I use cellEditBefore instead of this one. because it's easier.
+    // you can select a range of many cells, but can only edit a cell at once
   const rangeSelect = (...args) => {
-    console.log('rangeSelect');
-    console.log(args);
+    //get lock
+    console.log('rangeSelect---------------------------');
+    if(cancel===1){
+      cancel=0;
+      console.log('cancel')
+      //cancel, so unlock
+      sendJsonMessage(constructMessageFromRangeSelect(...args))
+    }
   };
-  console.log('Connection: ' + connectionStatus);
+  const  constructMessageFromRangeSelect=(...args)=>{
+    let message = {}
+    message['action'] = 'unlock';
+    message['sheet']=args[0].name;
+    message['column'] = args[1][0].column[0];
+    message['row'] = args[1][0].row[0];
+    message['user'] = userid;
+    message['path'] = filename;
+    console.log(message);
+    return message
+  }
+
+
+  const cellEditBefore = (...args) => {
+    console.log('cellEditBefore---------------------------');
+    //cannot get sheet name ??? emmmm, but setCellValue API needn't it too???
+    console.log('column: ',args[0][0].column[0]);
+    console.log('row: ',args[0][0].row[0]);
+    sendJsonMessage(constructMessageFromCellEdit(...args));
+    cancel=1;
+  };
+  const  constructMessageFromCellEdit=(...args)=>{
+    let message = {}
+    message['action'] = 'lock';
+    message['sheet']='Sheet1';//todo
+    message['column'] = args[0][0].column[0];
+    message['row'] = args[0][0].row[0];
+    message['user'] = userid;
+    message['path'] = filename;
+    console.log(message);
+    return message
+  }
+
+  console.log('Connection------------------------------: ' + connectionStatus);
+
 
   return (
     <>
@@ -52,7 +141,7 @@ const SheetPage = (...props) => {
           data: null,
           myFolderUrl: '/',
           title: filename,
-          hook: { cellUpdateBefore, cellUpdated, rangeSelect },
+          hook: { cellUpdateBefore, cellUpdated, rangeSelect,cellEditBefore },
         }}
         className="sheet-fullpage"
         {...props}

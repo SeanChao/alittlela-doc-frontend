@@ -1,6 +1,6 @@
 import React from 'react';
 import './App.css';
-import { NavPage, SheetPage } from './component';
+import { Example, NavPage, SheetPage } from './component';
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 
 const Home = () => (
@@ -15,7 +15,10 @@ function App() {
   return (
     <Router>
       <Switch>
-        <Route path="/sheet/:filename">
+        <Route path="/test">
+          <Example />
+        </Route>
+        <Route path="/sheet/:filename/:userid">
           <SheetPage />
         </Route>
         <Route path="/">
