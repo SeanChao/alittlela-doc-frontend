@@ -3,7 +3,7 @@ import React, { useMemo } from 'react';
 import { useParams } from 'react-router';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 
-const WS_API = process.env.REACT_APP_WS_URL;
+//const WS_API = process.env.REACT_APP_WS_URL;
 
 const SheetPage = (...props) => {
   // WebSocket config
@@ -20,7 +20,7 @@ const SheetPage = (...props) => {
       return
     var data = JSON.parse(lastMessage.data)
     console.log(data)
-    let cellData,id
+    let cellData
     switch (data.action){
       case 'lock':
         //todo lock the cell
