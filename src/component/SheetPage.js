@@ -10,6 +10,7 @@ const SheetPage = (...props) => {
   let { filename,userid } = useParams();
   let cancel=0;
   const  socketUrl='ws://localhost:8080/ws?user='+userid+'&path='+filename  //'wss://echo.websocket.org'  // `${WS_API}`;
+  const loadUrl='http://localhost:8080/read?user='+userid+'&path='+filename
 
   const { sendJsonMessage, lastMessage, readyState } = useWebSocket(socketUrl);
 
@@ -24,16 +25,37 @@ const SheetPage = (...props) => {
     switch (data.action){
       case 'lock':
         //todo lock the cell
-        console.log(data.user,' lock ',data.sheet,'-',data.column,'-',data.row)
+        console.log(data.user, ' lock ', data.sheet, '-', data.column, '-', data.row)
+        if (data.user !== userid) {
+          let value = window.luckysheet.getCellValue(data.row, data.column);
+          cellData={}
+          if(value!==null)
+            cellData['v']=value
+          cellData["bg"]='#808080'
+          cellData["lock"]='1'
+          window.luckysheet.setCellValue(data.row, data.column, cellData);
+        }
         break
       case 'unlock':
         //todo unlock the cell
-        console.log(data.user,' unlock ',data.sheet,'-',data.column,'-',data.row)
-        break
+        console.log(data.user, ' unlock ', data.sheet, '-', data.column, '-', data.row);
+        if (data.user !== userid) {
+          let value = window.luckysheet.getCellValue(data.row, data.column);
+          cellData={}
+          if(value!==null)
+            cellData['v']=value
+          cellData["bg"]=null
+          cellData["lock"]=null
+          window.luckysheet.setCellValue(data.row, data.column, cellData);
+        }
+        break;
       case 'write':
         //todo after writing, the cell lock will be release automatically
         console.log(data.user,' write ',data.sheet,'-',data.column,'-',data.row)
         cellData=JSON.parse(data.updateData)
+        cellData["bg"]=null
+        cellData["lock"]=null
+        window.luckysheet.clearCell(data.row, data.column)
         window.luckysheet.setCellValue(data.row,data.column,cellData)
         break
       default:
@@ -55,13 +77,15 @@ const SheetPage = (...props) => {
     if(cancel===1)
       cancel=0;
     console.log(args);
-    console.log(window.luckysheet.getCellValue(args[0],args[1]))
+    //console.log(window.luckysheet.getCellValue(args[0],args[1]))
   };
   const cellUpdated = (...args) => {
     console.log('cell updated------------------------------')
     console.log(args);
-    console.log('send write message');
-    sendJsonMessage(constructWriteMessage(...args));
+    if(args[3]["lock"]!=='1') {
+      console.log('send write message');
+      sendJsonMessage(constructWriteMessage(...args));
+    }
   };
   //after write
   const  constructWriteMessage=(...args)=>{
@@ -91,12 +115,12 @@ const SheetPage = (...props) => {
   const rangeSelect = (...args) => {
     //get lock
     console.log('rangeSelect---------------------------');
-    if(cancel===1){
-      cancel=0;
-      console.log('cancel')
-      //cancel, so unlock
-      sendJsonMessage(constructMessageFromRangeSelect(...args))
-    }
+      if(cancel===1) {
+        cancel = 0;
+        console.log('cancel')
+        //cancel, so unlock
+        sendJsonMessage(constructMessageFromRangeSelect(...args))
+      }
   };
   const  constructMessageFromRangeSelect=(...args)=>{
     let message = {}
@@ -140,7 +164,9 @@ const SheetPage = (...props) => {
         options={{
           data: null,
           myFolderUrl: '/',
+          loadUrl:loadUrl,
           title: filename,
+          gridKey:filename,
           hook: { cellUpdateBefore, cellUpdated, rangeSelect,cellEditBefore },
         }}
         className="sheet-fullpage"
