@@ -4,11 +4,12 @@ import { useParams } from 'react-router';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 
 //const WS_API = process.env.REACT_APP_WS_URL;
+let row=null,column=null;
+let cancel=0;
 
 const SheetPage = (...props) => {
   // WebSocket config
   let { filename,userid } = useParams();
-  let cancel=0;
   const  socketUrl='ws://localhost:8080/ws?user='+userid+'&path='+filename  //'wss://echo.websocket.org'  // `${WS_API}`;
   const loadUrl='http://localhost:8080/read?user='+userid+'&path='+filename
 
@@ -34,10 +35,13 @@ const SheetPage = (...props) => {
           cellData["bg"]='#808080'
           cellData["lock"]='1'
           window.luckysheet.setCellValue(data.row, data.column, cellData);
+        }else{
+          row=data.row
+          column=data.column
+          console.log(row,column)
         }
         break
       case 'unlock':
-        //todo unlock the cell
         console.log(data.user, ' unlock ', data.sheet, '-', data.column, '-', data.row);
         if (data.user !== userid) {
           let value = window.luckysheet.getCellValue(data.row, data.column);
@@ -47,6 +51,9 @@ const SheetPage = (...props) => {
           cellData["bg"]=null
           cellData["lock"]=null
           window.luckysheet.setCellValue(data.row, data.column, cellData);
+        }else{
+          row=null
+          column=null
         }
         break;
       case 'write':
@@ -57,6 +64,10 @@ const SheetPage = (...props) => {
         cellData["lock"]=null
         window.luckysheet.clearCell(data.row, data.column)
         window.luckysheet.setCellValue(data.row,data.column,cellData)
+        if(data.user===userid){
+          row=null
+          column=null
+        }
         break
       default:
         console.log('other message')
@@ -77,12 +88,12 @@ const SheetPage = (...props) => {
     if(cancel===1)
       cancel=0;
     console.log(args);
-    //console.log(window.luckysheet.getCellValue(args[0],args[1]))
   };
   const cellUpdated = (...args) => {
     console.log('cell updated------------------------------')
     console.log(args);
-    if(args[3]["lock"]!=='1') {
+    console.log(row,column)
+    if(args[3]["lock"]!=='1'&&row===args[0]&&column===args[1]) {
       console.log('send write message');
       sendJsonMessage(constructWriteMessage(...args));
     }
@@ -92,7 +103,7 @@ const SheetPage = (...props) => {
     //[0]:row; [1]:column; [2]:before value; [3]:update value; [4]:bool? don't know
     let message = {}
     message['action'] = 'write';
-    message['sheet']="Sheet1" //todo how to get the sheet name?
+    message['sheet']='Sheet1'//0 //todo how to get the sheet name?
     message['column'] = args[1];
     message['row'] = args[0];
     message['user'] = userid;
@@ -125,7 +136,7 @@ const SheetPage = (...props) => {
   const  constructMessageFromRangeSelect=(...args)=>{
     let message = {}
     message['action'] = 'unlock';
-    message['sheet']=args[0].name;
+    message['sheet']="Sheet1"//0;//todo
     message['column'] = args[1][0].column[0];
     message['row'] = args[1][0].row[0];
     message['user'] = userid;
@@ -146,7 +157,7 @@ const SheetPage = (...props) => {
   const  constructMessageFromCellEdit=(...args)=>{
     let message = {}
     message['action'] = 'lock';
-    message['sheet']='Sheet1';//todo
+    message['sheet']="Sheet1"//0;//todo
     message['column'] = args[0][0].column[0];
     message['row'] = args[0][0].row[0];
     message['user'] = userid;
