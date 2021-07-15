@@ -103,7 +103,7 @@ const SheetPage = (...props) => {
     //[0]:row; [1]:column; [2]:before value; [3]:update value; [4]:bool? don't know
     let message = {}
     message['action'] = 'write';
-    message['sheet']='Sheet1'//0 //todo how to get the sheet name?
+    message['sheet']=0 //todo how to get the sheet name?
     message['column'] = args[1];
     message['row'] = args[0];
     message['user'] = userid;
@@ -136,7 +136,7 @@ const SheetPage = (...props) => {
   const  constructMessageFromRangeSelect=(...args)=>{
     let message = {}
     message['action'] = 'unlock';
-    message['sheet']="Sheet1"//0;//todo
+    message['sheet']=0;//todo
     message['column'] = args[1][0].column[0];
     message['row'] = args[1][0].row[0];
     message['user'] = userid;
@@ -157,7 +157,7 @@ const SheetPage = (...props) => {
   const  constructMessageFromCellEdit=(...args)=>{
     let message = {}
     message['action'] = 'lock';
-    message['sheet']="Sheet1"//0;//todo
+    message['sheet']=0;//todo
     message['column'] = args[0][0].column[0];
     message['row'] = args[0][0].row[0];
     message['user'] = userid;
