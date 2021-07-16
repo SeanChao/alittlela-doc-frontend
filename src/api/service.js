@@ -1,3 +1,4 @@
+import { get } from './request';
 /**
  * 前后端交互：
 create, delete
@@ -9,14 +10,8 @@ trash bin
  * Home Page
  */
 
-const mockFileList = [
-  { filename: 'Awesome sheet!' },
-  { filename: 'a little la' },
-];
-
 export const getFiles = () => {
-  // TODO: HTTP Request
-  return mockFileList;
+  return get('/files');
 };
 
 /**
@@ -24,14 +19,13 @@ export const getFiles = () => {
  * @param {string} filename the name of the new file
  */
 export const createFile = (filename) => {
-  // TODO: HTTP Request
-  mockFileList.push({ filename: filename });
+  return get('/create', { path: filename });
 };
 
 export const deleteFile = (filename) => {
-  // TODO
-  mockFileList.splice(
-    mockFileList.findIndex((item) => item.filename === filename),
-    1
-  );
+  return get('/delete', { path: filename });
+};
+
+export const getBin = () => {
+  return get('/bin');
 };

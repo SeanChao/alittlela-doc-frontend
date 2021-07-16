@@ -54,20 +54,23 @@ const DocItem = ({ title, link, onDelete, ...props }) => {
 const NavPage = () => {
   const [files, setFiles] = useState([]);
   const [newFilename, setNewFilename] = useState('');
+
   useEffect(() => {
-    setFiles(getFiles());
-  });
+    getFiles()
+      .then((res) => setFiles(res.files))
+      .catch((err) => console.log(err));
+  }, []);
 
   const onCreateClick = () => {
     const filename = newFilename;
     createFile(filename);
-    setFiles(getFiles().slice());
   };
 
   const onDeleteClick = (ele) => {
-    deleteFile(ele.filename);
-    setFiles(getFiles().slice());
+    deleteFile(ele);
   };
+
+  const randomUserName = () => `user${Math.round(Math.random() * 1000)}`;
 
   return (
     <div className="bg-white rounded shadow w-full lg:w-3/4 lg:max-w-lg">
@@ -92,9 +95,9 @@ const NavPage = () => {
         {files.map((e, idx) => (
           <DocItem
             key={idx}
-            title={e.filename}
-            link={e.filename}
-            onDelete={(e, idx) => onDeleteClick(e, idx)}
+            title={e}
+            link={`${e}/${randomUserName()}`}
+            onDelete={() => onDeleteClick(e)}
             className="flex pb-4 pt-4 pl-10 pr-10 items-center hover:bg-gray-50"
           />
         ))}

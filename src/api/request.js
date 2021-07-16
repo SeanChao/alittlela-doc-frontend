@@ -6,7 +6,6 @@ const api =
   process.env.REACT_APP_API_URL === null ? '' : process.env.REACT_APP_API_URL;
 
 axios.defaults.baseURL = api;
-axios.defaults.withCredentials = true;
 
 const axiosRequest = (method, url = '', options = {}) => {
   const auth = options.auth;
